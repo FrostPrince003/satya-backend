@@ -1,0 +1,6 @@
+_pycache_
+.env
+blogcrew.py
+crew.py
+li_lead_crew.py
+.venv

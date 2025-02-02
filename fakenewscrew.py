@@ -1,14 +1,14 @@
 from crewai import Agent, Task, Crew, Process
-from langchain.tools import tool
-from langchain.llms import Ollama
-ollama_llm = Ollama(model="openhermes")
+from tools import llm, search_tool
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
-from langchain.tools import DuckDuckGoSearchRun
-search_tool = DuckDuckGoSearchRun()
+ollama_llm = llm
 
+os.environ["SERPER_API_KEY"] = os.getenv("SERPER_API_KEY")
 
-# Define your CrewAI agents and tasks
 # Define Agents
 fact_checking_agent = Agent(
     role='Fact-Checking Agent',
@@ -43,40 +43,43 @@ public_sentiment_analyst_agent = Agent(
     verbose=True,
     llm=ollama_llm
 )
-# Define a function to integrate the tools with CrewAI
-def analyze_news_article(content):
 
+def analyze_news_article(content):
+    # Define Tasks
     fact_checking_task = Task(
         description=f'Analyze the news article: {content} for factual accuracy. Final answer must be a detailed report on factual findings.',
+        expected_output='Detailed report on factual findings.',
         agent=fact_checking_agent
     )
 
     political_analysis_task = Task(
         description=f'Analyze the political context of the news article: {content}. Final answer must include an assessment of the current political situation and its credibility.',
+        expected_output='Assessment of the current political situation and its credibility.',
         agent=political_analyst_agent
     )
 
     media_bias_analysis_task = Task(
         description=f'Evaluate the news source: {content} for biases and report on potential influences on the article\'s narrative. Final answer must include an analysis of media bias.',
+        expected_output='Analysis of media bias.',
         agent=media_bias_analyst_agent
     )
 
     public_sentiment_analysis_task = Task(
         description=f'Analyze public reaction to the news: {content} on social media and forums. Final answer must summarize public sentiment.',
+        expected_output='Summary of public sentiment with a clear True or False output. If the claims are true then respond with True, otherwise False.',
         agent=public_sentiment_analyst_agent
     )
 
-
+    # Create Crew
     crew = Crew(
-        agents=[fact_checking_agent, political_analyst_agent, media_bias_analyst_agent, public_sentiment_analyst_agent],  # Other agents
-        tasks=[fact_checking_task,political_analysis_task, media_bias_analysis_task, public_sentiment_analysis_task],    # Other tasks
+        agents=[fact_checking_agent, political_analyst_agent, media_bias_analyst_agent, public_sentiment_analyst_agent],
+        tasks=[fact_checking_task, political_analysis_task, media_bias_analysis_task, public_sentiment_analysis_task],
         process=Process.sequential,
         verbose=True
     )
 
-    result = crew.kickoff()
-    return result
+    # Kickoff the process
+    results = crew.kickoff()
 
-#  usage
-final_result = analyze_news_article("Feb 8 2024 Elections have been cancelled in Pakistan. The government has declared a state of emergency. The military has taken over the country.")
-print(final_result)
+    # Structure the response
+    return results
