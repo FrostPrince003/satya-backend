@@ -96,8 +96,9 @@ def analyze_news_article(content):
     # Final summarization task to combine all findings into a cohesive narrativ
     verdict_task = Task(
         description=f'Provide a final verdict on the news article: {content} based on the combined findings from the Fact-Checking Agent, Political Analyst Agent, Media Bias Analyst Agent, and Public Sentiment Analyst Agent.',
-        expected_output='A clear final verdict (True/False) on the news article based on the combined findings from all agents.'
-                        'You should generate a score of how much percent of the artivle is actually true or false',
+        expected_output=f'A clear final verdict (True/False) on the news article based on the combined findings from all agents.'
+                        f'You should generate a score of how much percent of the {content} is actually true or false based on your analysis'
+                        f'where if the {content} is completely false you should return 0% and if it is completely true you should return 100%',
         agent=verdict_agent
     )
     summary_task = Task(
